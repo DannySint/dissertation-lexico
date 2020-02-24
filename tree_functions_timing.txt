@@ -1,0 +1,16 @@
+33 ms ± 92.8 µs per loop (mean ± std. dev. of 7 runs, 10 loops each) set() for adding()
+29.5 ms ± 189 µs per loop (mean ± std. dev. of 7 runs, 10 loops each) [] for adding()
+71.2 ns ± 0.411 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each) set() for finding
+71.1 ns ± 0.315 ns per loop (mean ± std. dev. of 7 runs, 10000000 loops each) for [] for finding
+%timeit adding()
+def adding():
+    for word in words:
+        add(forwardtrie, word)
+
+%timeit find()
+def find():
+    "forwardtrie", "adagio"
+
+%timeit score_suffixes(False) #debug = False 
+3.74 s ± 6.62 ms per loop (mean ± std. dev. of 7 runs, 1 loop each) set()
+3.73 s ± 4.81 ms per loop (mean ± std. dev. of 7 runs, 1 loop each) for []

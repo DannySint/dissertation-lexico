@@ -1,0 +1,9 @@
+currentSuffix is not accurate. it's more like currentWord
+actual suffix needs to be calculated.
+
+can add if currentWord = "" 
+
+the original part
+the first part 
+the second part
+split at 
