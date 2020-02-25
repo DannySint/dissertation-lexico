@@ -6,9 +6,12 @@ Pruning the words to remove negatively scored words and morphemes that are made 
 Test if using sets for storing the words seemed to matter. It did not seem to have a statistically significant difference. The results are in tree_functions_timing.txt.
 However, storing the words from the file as a set was much faster than storing them as a list.
 I tried this method out, while it was incredibly faster the output did not match the list one. After some thinking I determined this was because of the order in which the words were being added to the tries as they were dependent on being done in alphabetical order. Therefore I created a separate variable in the form of a set for checking the words to see if they exist. This cut the runtime down from 24 minutes to about 4 seconds.
+Removed adding +19 to the stem word. Removes most stems from the list.
+First condition, checking whether the word was in the wordlist was better than checking if it was a prefix in the Trie. It gave results similar to what Pitler and Keshava achieved.
 
 Do we go on to actually segment words or is the list of morphemes enough?
 Can I use parallel multi-threading to make this go faster (they'll all be writing to the same dictionary but operate on different words)
 Any advice for using the nltk for aiding/making it faster this? For example tokenisation for the wordlist.
 Test if weighting the words by their frequency/total word frequency and scoring them that way is better
 Splitting morphemes up into k amount of morphemes instead of just 2 might work better.
+morphemes like 'en' are penalised due to occuring in high frequency words such as "kindergarten", "delicatessen". However attempts at solving this, for example use in Part Of Speech wouldn't be applicable due to the unsupervised nature of this project.
