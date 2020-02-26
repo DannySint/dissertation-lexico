@@ -29,22 +29,6 @@ def words_from_file(file) -> (list, set):
             words_check_reversed.add(reverse(word))
     return words, words_check, words_reversed, words_check_reversed
 
-def read_input(file, punctuation = True):
-    wordlistFrequency = []
-    f = open(file, 'r', encoding="latin-1")
-    x = 0
-    for line in f:
-        #print(line)
-        frequency, word = line.split()
-        #print(word + " " + str(PATTERN.match(word)))
-        if (not any(char in string.punctuation for char in word)) and punctuation: #removes punctuation.
-            wordlistFrequency.append((word, frequency))
-        #if (string.punctuation in word.punctuation is []):
-        x += 1
-            
-    print(wordlistFrequency)
-    print(x)
-
 #recursive function that returns a suffix if the 3 conditions are met
 #for a clearer insight into the variables of this algorithm doc/is_suffix.png
 #TODO: Add prefix scoring too
@@ -259,8 +243,8 @@ def get_morphemes(pruned_word_score, csv=csv_format) -> list:
                 print(word_pair + " Score: " + str(word_score[word_pair]))
     return morpheme_list
 
-file = "wordlist-2007-trimmed.eng" #TODO: Add opts for the wordlist and an output file for the morphemes
-output = ""
+file = "data/wordlist-2007-trimmed.eng" #TODO: Add opts for the wordlist and an output file for the morphemes
+output = "data/"
 words, words_check, words_reversed, words_check_reversed = words_from_file(file)
 forward_trie = TrieNode('*')
 backward_trie = TrieNode('*')
