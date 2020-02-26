@@ -44,6 +44,21 @@ class TrieNode(object):
 
         for i, c in enumerate(self.children):
             c.pprint(indent, i == len(self.children) - 1, stack)
+
+    def probability(self, str1, str2, debug=False) -> int:
+        """
+        Returns the probability of Pr_x(str2|str1) (where x is the trie - forward/backward)
+        Probability of the forward tree of "s" given "report"
+        Divide the frequency of words starting with "reports" 
+        by
+        the frequency of words starting "report"
+        """
+        value1 = find_prefix(self, str1)[1]
+        if debug: print("Value of " + str1 + ": " + str(value1))
+        value2 = find_prefix(self, str2)[1]
+        if debug: print("Value of " + str2 + ": " + str(value2))
+        return (value2 / value1)
+        #return (str1 / str2)
         
 
 def add(root, word: str):
@@ -107,7 +122,7 @@ def find_prefix(root, prefix: str) -> Tuple[bool, int]:
     # prefix
     return True, node.counter
 
-def reverse_slicing(str):
+def reverse(str):
     return str[::-1]
 
 def words_from_file(file):

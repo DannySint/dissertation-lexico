@@ -1,3 +1,5 @@
+word_score = {} #{reports: 19}
+
 def is_suffix(current_suffix, original, debug=True):
     if (current_suffix == ""): #exit conditions
         return "*";
@@ -6,6 +8,8 @@ def is_suffix(current_suffix, original, debug=True):
         first_part_uncut = original[0:split+1]
         first_part = original[0:split]
         first_part_cut = first_part[0:-1]
+        second_part = original[split:];
+        
         if ((len(first_part) != 0) and (first_part in words_check)):
             around_one = probability(forward_trie, first_part_cut, first_part, debug)
             if ((around_one > 0.95) and (around_one < 1.05)): #close to 1
