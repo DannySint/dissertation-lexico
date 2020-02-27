@@ -11,6 +11,7 @@ First condition, checking whether the word was in the wordlist was better than c
 Outputting to a file instead of printing out statements
 morphemes like 'en' are penalised due to occuring in high frequency words such as "kindergarten", "delicatessen". However attempts at solving this, for example use in Part Of Speech wouldn't be applicable due to the unsupervised nature of this project.
 Limited in scope, can only do prefixes and suffixes. Could be words with more than these.
+morphemes like 'ion' or 'tion' are missing.
 
 Do we go on to actually segment words or is the list of morphemes enough?
 Can I use parallel multi-threading to make this go faster (they'll all be writing to the same dictionary but operate on different words)

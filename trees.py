@@ -244,12 +244,38 @@ def segment_word(word, debug=False) -> str:
     #potential_morphemes = min([suffix[1] for suffix_list if forward_trie.probability(suffix) < 1], default=0)
     if (potential_morphemes == {}) or lowest_morpheme == 0:
         if debug: print("empty desu yo")
-        return word
+        return word #return segment_prefix(word)
     else: #peel apart the morphemes now
         first_part = word[0:0-len(lowest_morpheme)]
         if debug: print("not empty")
         return str(first_part + "+" + lowest_morpheme)
+        #return segment_prefix(str(first_part + "+" + lowest_morpheme))
         #word = potential_morphemes
+        
+def segment_prefix(word, debug=False) -> str:
+    for i in range(len(word)):
+        first_part = word[:i]
+        second_part = word[i:]
+        if i == '+': #no point going past the +
+            return segment_prefix(word)
+        if first_part in pruned_word_score_prefix:
+            prefix_list.append(first_part)
+            suffix_list.append(second_part)        
+    potential_morphemes = {}
+    
+    for i in range(len(prefix_list)): #doesn't matter, just pick one.
+        peel = backward_trie.probability(reverse(suffix_list[i]), reverse(prefix_list[i][:1] + suffix_list[i] ))
+        if peel < 1:
+            potential_morphemes[prefix_list[i]] = peel
+        lowest_morpheme = str(min(potential_morphemes, key=potential_morphemes.get, default=0))
+        
+        if (potential_morphemes == {}) or lowest_morpheme == 0:
+            if debug: print("empty desu yo")
+            return segment_prefix(word)
+        else: #peel apart the morphemes now
+            first_part = word[0:0-len(lowest_morpheme)]
+            if debug: print("not empty")
+            return str(lowest_morpheme + "+" + second_part)
 file = "data/wordlist-2007.eng" #TODO: Add opts for the wordlist and an output file for the morphemes. And a format option
 output_file_suffixes = "data/morphemes_suffixes-multi.csv"
 output_file_prefixes = "data/morphemes_prefixes-multi.csv"
@@ -274,9 +300,7 @@ word_standard  = open("word_standard.txt", 'w')
 if __name__ == "__main__":
     #print(words)
     #forward_trie.pprint(); #backward_trie.pprint();
-    
-    #suffix_list = [['report','s'],['repor','ts'],['repo','rts'],['re','ports']]
-    
+        
     score_prefixes(False); pruned_word_score_prefix = prune_affixes(word_score_prefix); prefix_list = get_morphemes(pruned_word_score_prefix, output_file_prefixes);
     score_suffixes(False); pruned_word_score_suffix = prune_affixes(word_score_suffix); suffix_list = get_morphemes(pruned_word_score_suffix, output_file_suffixes);
     for word in words:

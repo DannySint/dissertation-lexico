@@ -1,0 +1,10 @@
+We have reports
+We want to examine that word
+s				~ 1		, s < 1
+st				, s ~ 1		s, str < 1
+str				s, st ~ 1		st, str < 1
+stro				st, str ~ 1		str, stro < 1
+strop				str, stro ~ 1 ;;;	stro, strop < 1
+strope				stro, strop ~ 1 ;;;	strop, strope < 1
+stroper 				strop, strope ~ 1 ;;; 	strope, stroper < 1
+

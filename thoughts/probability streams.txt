@@ -1,0 +1,12 @@
+Prb(r|eports)				Prb(e|ports)
+Probability(reports) / Probability(eports)		= Probability(eports) / Probability(ports)
+= probability(backward_trie, "eports", "reports")	= probability(backward_trie, "ports", "eports"
+from word "reports" cut off first letter
+
+Prf(t|repor) 
+= Probability(report) / Probability(repor)
+= probability(forward_trie, "repor", "report")
+
+Prf(e|correspond) < 1
+= Probability(corresponde) / Probability(correspond)
+= probability(forward_trie, "correspond", "corresponde")
