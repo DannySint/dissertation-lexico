@@ -1,6 +1,6 @@
 def words_from_file(data, output) -> (list, set):
     f = open(data, 'r', encoding="latin-1")
-    o = open(output, 'w',)
+    o = open(output, 'w')
     for line in f:
         _, word = line.split()
 #        words.append(word)

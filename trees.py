@@ -1,7 +1,6 @@
 import string
 import re
 from lexotree import TrieNode
-from lexotree import find_prefix
 from lexotree import add
 from lexotree import reverse
 import multiprocessing
@@ -35,9 +34,9 @@ def words_from_file(file) -> (list, set):
 #TODO: Test if weighting the words by their frequency/total word frequency and scoring them that way is better
 def is_suffix(current_suffix, original, debug=True): #current_suffix is more like current_prefix
     """
-    Gets the potential suffix (more like prefix) as well as the unchanged original
+    Gets the potential suffix (more like prefix) as well as the unaltered original
     original could technically be a global variable as it remains unchanged throughout one is_suffix call
-    Stores the cut, uncut, normal, and second part of the original based on the current_suffix
+    Stores the cut, uncut, and normal of the first part as well as the second part of the original based on the current_suffix
     Runs through the 3 conditions outlined in Pitler & Keshava (2007):
         whether the normal is in the word list
         Whether the normal word frequency / cut word frequency is around 1
@@ -47,106 +46,66 @@ def is_suffix(current_suffix, original, debug=True): #current_suffix is more lik
     This simulates a 0.05 (arbitrary) passrate (the second word -potential morpheme- needs to pass 95% of the time.)
     Returns once the word is finished
     """
-    #print("Currently at: " + original) 
-    #print("current_suffix: " + current_suffix)
     if (current_suffix == ""): #exit conditions
         return "*";
     else:
-    #go backwards
         # 3 conditions for possible suffix
         split = (len(original)-len(current_suffix)) #the position at which the word is split 12 - 11 = 11 or -1
         first_part_uncut = original[0:split+1]
         first_part = original[0:split]
         first_part_cut = first_part[0:-1]
         second_part = original[split:];
-        #print("Current Word before checking: " + current_word)
-        if debug: print("First Part before checking: " + first_part)
-        if debug: print("First Part Cut before checking: " + first_part_cut)
-        if debug: print("First Part UnCut before checking: " + first_part_uncut)
-        #print("Second Part before checking: " + second_part)
-        if debug: print()
         if ((len(first_part) != 0) and (first_part in words_check)): #find_prefix(forward_trie, first_part)[0] 
-            if debug: print(first_part + " is a word")
-            #around_one = forward_trie.probability(first_part[:1] + first_part[1:], (first_part[:1] + first_part[1:] + second_part)) 
-            around_one = forward_trie.probability(first_part_cut, first_part, debug)
-            if debug: print(first_part + " value is " + str(around_one))
-            if ((around_one > 0.95) and (around_one < 1.05)): #close to 1
+            second_condition = forward_trie.probability(first_part_cut, first_part, debug)
+            if ((second_condition > 0.95) and (second_condition < 1.05)): #close to 1 (#TODO: Test for closer values)
                 #third condition
-                if debug: print(first_part + " passed the 2nd test with a value of " + str(around_one))
-                if debug: print("|__ using probability(" + first_part_cut + ", " + first_part + ")")
-                third_part = forward_trie.probability(first_part, first_part_uncut, debug)
-                if debug: print("Dai Maho:  " + str(third_part));
-                if (third_part < 1):
-                    #word_score[first_part] += 20; #papers says 19 but the code after this subtracts it by 1 anyway. I thought it might be faster not to add else branches
-                    if (second_part in word_score_suffix):    
-                        word_score_suffix[second_part] += 20; #19 because they won't be -1'd
-                    else:
-                        word_score_suffix[second_part] = 20; #morphemes might not in the original wordlist 
-                    #leaf = find_prefix(current_suffix)
-                    if debug: print("Second part is: " + second_part)
-        #print(word_score)
-        
+                third_condition = forward_trie.probability(first_part, first_part_uncut, debug)
+                if (third_condition < 1):
+                    word_score_suffix[second_part] = word_score_suffix.get(second_part, 0) + 20; #20 instead of 19 because they'll be -1'd anyway. It avoids a few elses #morphemes might not in the original wordlist     
         word_score_suffix[second_part] = word_score_suffix.get(second_part, 0) - 1;
-        #word_score[second_part] -= 1; #if not in words we don't care
-        #if debug: print("first_part: " + first_part + ". Score: " + str(word_score[first_part]))
-        if debug: print()
         is_suffix(current_suffix[0:-1], original, debug) #recursively cut off the last letter
 
 #go through each word backwards and test the 3 conditions outlined in 2.2   
 def is_prefix(current_prefix, original, debug=True):
-    #print("Currently at: " + original) 
-    #print("current_suffix: " + current_suffix)
+    """
+    Gets the potential prefix (more like suffix) as well as the unaltered original
+    original could technically be a global variable as it remains unchanged throughout one is_prefix call
+    Stores the first part of the original word divided by the split as well as the cut, uncut, and normal of the second part from the split.
+    Runs through the 3 conditions outlined in Pitler & Keshava (2007):
+        whether the second part of the word is in the word list
+        Whether the cut word frequency / normal word frequency is around 1
+        Whether the uncut word frequency / normal word frequency is less than 1
+    If all these conditions are passed then the second part of the word has it's score raised by 19
+    If one of these tests doesn't pass, the second part of the word's score is reduced by 1
+    This simulates a 0.05 (arbitrary) passrate (the first word -potential morpheme- needs to pass 95% of the time.)
+    Returns once the word is finished
+    """
     if (current_prefix == original): #exit conditions
         return "*";
     else:
     #go backwards
         # 3 conditions for possible suffix
         split = (len(original)-len(current_prefix)) #the position at which the word is split 12 - 11 = 11 or -1
-        first_part_uncut = original[0:split+1]
         first_part = original[0:split] #STILL Bb
-        first_part_cut = first_part[0:-1]
         second_part = original[split:];
         second_part_cut = second_part[1:]; 
         second_part_uncut = original[split-1:len(original)];
-        if debug: print("First Part UnCut before checking: " + first_part_uncut)
-        if debug: print("First Part before checking: " + first_part)
-        if debug: print("First Part Cut before checking: " + first_part_cut)
-        if debug: print("Second Part before checking: " + second_part)
-        if debug: print("Second Part before checking: " + second_part_cut)
-        #if debug: print()
         if ((second_part in words_check) ): #and (not (second_part == original))
-        #if (find_prefix(backward_trie, reverse(first_part))):
-        #if (first_part_reversed in words_check): #is Bb a word? #looking for words ENDING in first_part so "strope" 
-            #isn't going to work
-            if debug: print(first_part + ". Passed through with " + second_part)
-            #around_one = backward_trie.probability( first_part_cut, first_part, debug) #could be switch cut and normal way round?
-            #around_one = backward_trie.probability( first_part, first_part_cut, debug) #could be switch cut and normal way round?
-            around_one = backward_trie.probability( reverse(second_part), reverse(second_part_cut), debug) #could be switch cut and normal way round?
-            if debug: print(second_part + " second condition is " + str(around_one) + ". (should be near 1)")
-            if ((around_one > 0.95) and (around_one < 1.05)): #close to 1
-                #third condition
-                if debug: print(second_part + " passed the 2nd test with a value of " + str(around_one))
-                if debug: print("|__ using probability(" + first_part_cut + ", " + first_part + ")")
-                third_part = backward_trie.probability( reverse(second_part), reverse(second_part_uncut), debug)
-                if debug: print("Dai Maho:  " + str(third_part));
-                if (third_part < 1):
-                    if (first_part in word_score_prefix):    
-                        word_score_prefix[first_part] += 20; #19 because they won't be -1'd
-                    else:
-                        word_score_prefix[first_part] = 20; #morphemes might not in the original wordlist 
-                    #leaf = find_prefix(current_suffix)
-                    if debug: print("First part is: " + first_part)
+            second_condition = backward_trie.probability( reverse(second_part), reverse(second_part_cut), debug) #could be switch cut and normal way round?
+            if ((second_condition > 0.95) and (second_condition < 1.05)): #close to 1 (#TODO: Test closer values)
+                third_condition = backward_trie.probability( reverse(second_part), reverse(second_part_uncut), debug)
+                if (third_condition < 1):
+                    if (first_part in word_score_prefix):
+                        word_score_prefix[first_part] = word_score_prefix.get(first_part, 0) + 20 #20 instead of 19 because they'll be -1'd anyway. It avoids a few elses #morphemes might not in the original wordlist 
             word_score_prefix[first_part] = word_score_prefix.get(first_part, 0) - 1;#word_score_prefix[first_part] -= 1; #if second part is not in words we don't care
-        if debug: print()
         prefix_length = len(current_prefix)
-        #if debug: print("Current Prefix + 1 " + current_prefix + original[prefix_length :prefix_length+1])
         is_prefix(current_prefix + original[prefix_length :prefix_length+1], original, debug) #recursively add on a new letter
 
 
 def score_prefixes(debug):
     for word in words:
         if len(word) > 1:
-            prefix = is_prefix(word[:1], word, debug)
+            is_prefix(word[:1], word, debug)
 
 #TODO: Implement Multicore processing for each different character child of the root.
 def score_suffixes(debug):
@@ -154,8 +113,9 @@ def score_suffixes(debug):
     Loops through all the words to send to is_suffix
     Split words up into multi processing so it's much faster
     """
-#    word_pairs = [[word[:-1], word] for word in words if len(word) > 1]#create list of [word[:-1], word]'s
-#    #print(word_pairs)
+    #word_pairs = [[word[:-1], word] for word in words if len(word) > 1]#create list of [word[:-1], word]'s
+    #print(word_pairs)
+#    word_pairs = [ ["wor","word"], ["report","reports"] ]
 #    with multiprocessing.Pool(processes=2) as pool:
 #        pool.map(is_suffix, word_pairs)
         
@@ -164,23 +124,16 @@ def score_suffixes(debug):
     for word in words:
         #add word to word_score{} with 0
         if len(word) > 1: #no point in doing 1 letter characters.
-            suffix = is_suffix(word[:-1], word, debug)
-
-
-#backward_trie.probability( reverse("eports"), reverse("ports"))
-
-
-            #is_prefix(reverse("reports")[:1], reverse("reports"))
-
+            is_suffix(word[:-1], word, debug)    
 
 def prune_affixes(word_score):
     """
     Go through the morphemes list 
     where a morpheme is comprised of 2 morphemes
     and
-    Those 2 morphemes have a better score
-    Remove the original morpheme
-    
+    Those 2 smaller morphemes have a higher score than the first morpheme
+    Then remove the original morpheme 
+    TODO: Test if adding the original morphemes score to the 2 smaller morphemes affects anything.
     TODO: Perhaps this can be done recursively for 'k' morphemes by splitting morphemes multiple times.
     """
     for word in word_score:
@@ -193,14 +146,17 @@ def prune_affixes(word_score):
             
                 if ((first_morpheme_score > word_score[word]) and (second_morpheme_score > word_score[word])):
                     word_score[word] = -1 #flag the morpheme to be deleted
-              
+        
         #isSplittable(word, len(word))
         
     #remove all negative scoring words
     pruned_word_score = { key:value for key, value in word_score.items() if value > 0 }
     return pruned_word_score 
     #return word_score #global variable usage would be preferable.
-        
+    
+def decomposed_words(word, word_score) -> [()]: #return a list of potential tuples containing the morpheme pairs
+    #should it choose the best one? Can it even do that..
+    print("ff@20")
 
 def isSplittable(word, k):
     word_parts = {}
@@ -222,14 +178,13 @@ def isSplittable(word, k):
     print(word_parts)
     return False
 
-word_score_suffix = {}
-word_score_prefix = {}
-csv_format = True
 
-def get_morphemes(pruned_word_score, csv=csv_format) -> list:
+csv_format = True
+def get_morphemes(pruned_word_score, output_file, csv=csv_format) -> list:
     """
     Simple loop that outputs all the morphemes in word_score
     """
+    o = open(output_file, 'w')
     morpheme_list = []
     word_score = pruned_word_score
     for word_pair in word_score:
@@ -237,14 +192,72 @@ def get_morphemes(pruned_word_score, csv=csv_format) -> list:
         #print(word_score[word_pair])
         if (word_score[word_pair] != 0):
             morpheme_list.append(word_pair)
-            if csv:
-                print(word_pair + "," + str(word_score[word_pair]))
-            else:
-                print(word_pair + " Score: " + str(word_score[word_pair]))
+    #print(word_score)
+    sorted_word_score = {key: value for key, value in sorted(word_score.items(), key=lambda item: item[1], reverse=True)}
+    for word_pair in sorted_word_score:
+        if csv:
+            o.write(word_pair + "," + str(sorted_word_score[word_pair]) + "\n")
+        else:
+            o.write(word_pair + " Score: " + str(sorted_word_score[word_pair]) + "\n")
     return morpheme_list
 
-file = "data/wordlist-2007-trimmed.eng" #TODO: Add opts for the wordlist and an output file for the morphemes
-output = "data/"
+def segment_word(word, debug=False) -> str:
+#    for word in words:#go through the list of words
+#        if word in word_score_suffix: #if a word is a morpheme just leave it
+#            print(word + " is a morpheme")
+#            return word
+#        else: #if it's not:
+#            #scan the word from beginning to end
+    suffix_list = []
+    prefix_list = []
+    for i in reversed(range(len(word))):
+        #split = len(word)- i
+        first_part = word[:i]
+        second_part = word[i:]
+        if second_part in pruned_word_score_suffix:
+            #affix_list.append([first_part, second_part]) #only 2 morpheme split currently.#TODO: Add k splitting
+            prefix_list.append(first_part)
+            suffix_list.append(second_part) #only 2 morpheme split
+    if debug: print(prefix_list)
+    if debug: print(suffix_list)
+    
+        #compare Prb values
+        #list comprehension getting the lowest value iff the Prx value is < 1
+        #even_squares = [x * x for x in range(10) if x % 2 == 0]
+    potential_morphemes = {}
+    #prefix_list = ["report", "repor", "repo",  "re"]
+    #suffix_list = ['s', 'ts', 'rts', 'ports']
+    for i in range(len(prefix_list)): #TODO: Write as a list comprehension
+        if debug: print(prefix_list[i] + suffix_list[i][:1])
+        if debug: print(prefix_list[i])
+        peel = forward_trie.probability(prefix_list[i], prefix_list[i] + suffix_list[i][:1])
+        if debug: print(peel)
+        if peel < 1:# Probability(B|alpha) = Probability(alpha + B) / Probability (B) = probability(alpha + B, alpha)
+            potential_morphemes[suffix_list[i]] = peel
+        if debug: print()
+    if debug: print(potential_morphemes)
+    if debug: print("Min " + str(min(potential_morphemes, key=potential_morphemes.get, default=0)))
+    lowest_morpheme = str(min(potential_morphemes, key=potential_morphemes.get, default=0))
+    #prefix_list = [['report','s'],['repor','ts'],['repo','rts'],['re','ports']]
+    #potential_morphemes = [suffix[1] for suffix in suffix_list if forward_trie.probability(suffix, ) < 1]
+    
+    #potential_morphemes = min([suffix[1] for suffix_list if forward_trie.probability(suffix) < 1], default=0)
+    if (potential_morphemes == {}) or lowest_morpheme == 0:
+        if debug: print("empty desu yo")
+        return word
+    else: #peel apart the morphemes now
+        first_part = word[0:0-len(lowest_morpheme)]
+        if debug: print("not empty")
+        return str(first_part + "+" + lowest_morpheme)
+        #word = potential_morphemes
+file = "data/wordlist-2007.eng" #TODO: Add opts for the wordlist and an output file for the morphemes. And a format option
+output_file_suffixes = "data/morphemes_suffixes-multi.csv"
+output_file_prefixes = "data/morphemes_prefixes-multi.csv"
+
+word_score_suffix = {}
+word_score_prefix = {}
+
+
 words, words_check, words_reversed, words_check_reversed = words_from_file(file)
 forward_trie = TrieNode('*')
 backward_trie = TrieNode('*')
@@ -254,24 +267,19 @@ for word in words:
     add(backward_trie, reverse(word))
     word_score_suffix[word] = 0;
     word_score_prefix[word] = 0;
-debug = True
-#print(backward_trie.probability( "s", "", debug))
-#print(backward_trie.probability( "st", "s", debug))
-#print(backward_trie.probability( "str", "st", debug))
-#print(backward_trie.probability( "stro", "str", debug))
-#print(backward_trie.probability( "strop", "stro", debug))
-#print(backward_trie.probability( "strope", "strop", debug))
-#print(backward_trie.probability( "stroper", "strope", debug))
+debug = False
 pruned_word_score = { key:value for key, value in word_score_prefix.items() if value > 0 }
+word_standard  = open("word_standard.txt", 'w')
 
-#TODO: switch to writing to file instead of outputting to 'log'
-
-
-#if __name__ == "__main__":
+if __name__ == "__main__":
     #print(words)
     #forward_trie.pprint(); #backward_trie.pprint();
-score_prefixes(False); pruned_word_score = prune_affixes(word_score_prefix); prefix_list = get_morphemes(pruned_word_score);
-#score_suffixes(False); pruned_word_score = prune_affixes(word_score_suffix); suffix_list = get_morphemes(pruned_word_score, False);
-
+    
+    #suffix_list = [['report','s'],['repor','ts'],['repo','rts'],['re','ports']]
+    
+    score_prefixes(False); pruned_word_score_prefix = prune_affixes(word_score_prefix); prefix_list = get_morphemes(pruned_word_score_prefix, output_file_prefixes);
+    score_suffixes(False); pruned_word_score_suffix = prune_affixes(word_score_suffix); suffix_list = get_morphemes(pruned_word_score_suffix, output_file_suffixes);
+    for word in words:
+        word_standard.write(segment_word(word) + "\n")
     
 #TODO: Add Evaluation with the Morpho Project Challenges' gold standard
