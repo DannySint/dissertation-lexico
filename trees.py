@@ -30,7 +30,6 @@ def words_from_file(file) -> (list, set):
 
 #recursive function that returns a suffix if the 3 conditions are met
 #for a clearer insight into the variables of this algorithm doc/is_suffix.png
-#TODO: Add prefix scoring too
 #TODO: Test if weighting the words by their frequency/total word frequency and scoring them that way is better
 def is_suffix(current_suffix, original, debug=True): #current_suffix is more like current_prefix
     """
@@ -201,7 +200,7 @@ def get_morphemes(pruned_word_score, output_file, csv=csv_format) -> list:
             o.write(word_pair + " Score: " + str(sorted_word_score[word_pair]) + "\n")
     return morpheme_list
 
-def segment_word(word, debug=False) -> str:
+def segment_suffix(word, debug=False) -> str:
 #    for word in words:#go through the list of words
 #        if word in word_score_suffix: #if a word is a morpheme just leave it
 #            print(word + " is a morpheme")
@@ -230,7 +229,9 @@ def segment_word(word, debug=False) -> str:
     for i in range(len(prefix_list)): #TODO: Write as a list comprehension
         if debug: print(prefix_list[i] + suffix_list[i][:1])
         if debug: print(prefix_list[i])
-        peel = forward_trie.probability(prefix_list[i], prefix_list[i] + suffix_list[i][:1])
+        
+        peel = forward_trie.probability(prefix_list[i], prefix_list[i] + suffix_list[i][:1]) #Prf(B|alpha)
+        #not sure this is right... shouldn't the first argument be the full word?
         if debug: print(peel)
         if peel < 1:# Probability(B|alpha) = Probability(alpha + B) / Probability (B) = probability(alpha + B, alpha)
             potential_morphemes[suffix_list[i]] = peel
@@ -243,39 +244,58 @@ def segment_word(word, debug=False) -> str:
     
     #potential_morphemes = min([suffix[1] for suffix_list if forward_trie.probability(suffix) < 1], default=0)
     if (potential_morphemes == {}) or lowest_morpheme == 0:
-        if debug: print("empty desu yo")
-        return word #return segment_prefix(word)
+        if debug: print("Potential_morphemes is empty")
+        return segment_prefix(word, debug) #return segment_prefix(word)
     else: #peel apart the morphemes now
         first_part = word[0:0-len(lowest_morpheme)]
         if debug: print("not empty")
-        return str(first_part + "+" + lowest_morpheme)
-        #return segment_prefix(str(first_part + "+" + lowest_morpheme))
+        return segment_prefix(str(first_part + "_" + lowest_morpheme), debug)
+        #return segment_prefix(str(first_part + "_" + lowest_morpheme))
         #word = potential_morphemes
         
-def segment_prefix(word, debug=False) -> str:
+def segment_prefix(word, debug=True) -> str:
+    if debug: print("Starting segment prefix with " + word)
+    suffix_list = []
+    prefix_list = []
     for i in range(len(word)):
+        if i == '+': #no point going past the +
+            break; #return segment_prefix(word)
         first_part = word[:i]
         second_part = word[i:]
-        if i == '+': #no point going past the +
-            return segment_prefix(word)
         if first_part in pruned_word_score_prefix:
             prefix_list.append(first_part)
             suffix_list.append(second_part)        
+    if debug: print(prefix_list)
+    if debug: print(suffix_list)
     potential_morphemes = {}
-    
-    for i in range(len(prefix_list)): #doesn't matter, just pick one.
-        peel = backward_trie.probability(reverse(suffix_list[i]), reverse(prefix_list[i][:1] + suffix_list[i] ))
+    if ((prefix_list == []) or (suffix_list == [])):
+        return word
+    for i in range(len(prefix_list)): #doesn't matter if it's prefix or suffix list, just pick one.
+        if debug: print("Suffix_list[i]: " + suffix_list[i])
+        if debug: print("prefix_list[i][:1]: " + prefix_list[i][:1])
+        #print("prefix list + suffix_list[]: " + prefix_list[i][:1] + suffix_list[i])
+        #print("Reversed prefix list + suffix_list[]: " + reverse(suffix_list[:i] + prefix_list[i][:1]))
+        if debug: print("First test: " + reverse(suffix_list[i]))
+        if debug: print("Second test: " + reverse(prefix_list[i][-1])) #aA B = suffix_list[i]; A = prefix_list[i][:-1]
+        if debug: print("Removed + from " + reverse(re.sub('[+]', '',suffix_list[i])));
+        #peel = backward_trie.probability(suffix_list[i], reverse(prefix_list[i][:1] + suffix_list[i] ))
+        #peel = backward_trie.probability(reverse(suffix_list[:i]), reverse(suffix_list[:i] + prefix_list[i][1]))
+        peel = backward_trie.probability(reverse(prefix_list[i][-1]), reverse(re.sub('[+]', '',suffix_list[i]))) 
+        if debug: print("Peel: " + str(peel))
+        ###### THIS IS PROBABLY INCORRECT ###### 
         if peel < 1:
             potential_morphemes[prefix_list[i]] = peel
         lowest_morpheme = str(min(potential_morphemes, key=potential_morphemes.get, default=0))
-        
+        if debug: print(lowest_morpheme)
         if (potential_morphemes == {}) or lowest_morpheme == 0:
-            if debug: print("empty desu yo")
-            return segment_prefix(word)
+            if debug: print("Potential_morphemes is empty")
+            return word
         else: #peel apart the morphemes now
-            first_part = word[0:0-len(lowest_morpheme)]
-            if debug: print("not empty")
-            return str(lowest_morpheme + "+" + second_part)
+            second_part = word[0+len(lowest_morpheme):]
+            if debug: print("Lowest_morpheme: " + lowest_morpheme)
+            if debug: print("Second part: " + second_part)
+            if debug: print(str(lowest_morpheme + "+" + second_part))
+            return re.sub('[_][_]', '_',str(lowest_morpheme + "+" + second_part)) #morphemes might be segmented in the same position
 file = "data/wordlist-2007.eng" #TODO: Add opts for the wordlist and an output file for the morphemes. And a format option
 output_file_suffixes = "data/morphemes_suffixes-multi.csv"
 output_file_prefixes = "data/morphemes_prefixes-multi.csv"
@@ -295,6 +315,7 @@ for word in words:
     word_score_prefix[word] = 0;
 debug = False
 pruned_word_score = { key:value for key, value in word_score_prefix.items() if value > 0 }
+#word_standard  = open("word_standard-prefix-testing.txt", 'w')
 word_standard  = open("word_standard.txt", 'w')
 
 if __name__ == "__main__":
@@ -303,7 +324,10 @@ if __name__ == "__main__":
         
     score_prefixes(False); pruned_word_score_prefix = prune_affixes(word_score_prefix); prefix_list = get_morphemes(pruned_word_score_prefix, output_file_prefixes);
     score_suffixes(False); pruned_word_score_suffix = prune_affixes(word_score_suffix); suffix_list = get_morphemes(pruned_word_score_suffix, output_file_suffixes);
+    #word_standard.write(segment_prefix("report+s", True))
     for word in words:
-        word_standard.write(segment_word(word) + "\n")
+        if len(word) != 1:
+            word_standard.write(segment_suffix(word) + "\n")
+
     
 #TODO: Add Evaluation with the Morpho Project Challenges' gold standard
