@@ -1,0 +1,6 @@
+Make a diagram of how my  code works with explanations for each function
+
+for evaluation:
+for suffixes check only the first
+for prefixes check only the last
+make sure these are not the same

@@ -24,7 +24,7 @@ class TrieNode(object):
 
         sys.stdout.write(indent)
 #        if last:
-#            sys.stdout.write("┗╾")
+#            sys.stdout.write("┗╾") #cause issues with outputting to command line
 #            indent += "  "
 #        else:
 #            sys.stdout.write("┣╾")
@@ -61,35 +61,35 @@ class TrieNode(object):
         #return (str1 / str2)
         
 
-def add(root, word: str):
-    """
-    Adds a word to the Trie 
-    if the word already exists just add to the counter
-    if the word doesn't exist then create child nodes until it does exist
-    """
-    node = root
-    
-    for char in word: #loop over each character of a word
-        found_in_child = False
-        # Search for the character in the children of the present `node`
-        for child in node.children:
-            if child.char == char:
-                # We found it, increase the counter by 1 to keep track that another
-                # word has it as well
-                #child[char] = child.get(char, 0) + 1; 
-                child.counter += 1
-                # And point the node to the child that contains this char
-                node = child
-                found_in_child = True
-                break
-        # We did not find it so add a new child
-        if not found_in_child:
-            new_node = TrieNode(char)
-            node.children.append(new_node)
-            # And then point node to the new child
-            node = new_node
-    # Everything finished. Mark it as the end of a word.
-    node.word_finished = True
+    def add(self, word: str):
+        """
+        Adds a word to the Trie 
+        if the word already exists just add to the counter
+        if the word doesn't exist then create child nodes until it does exist
+        """
+        node = self
+        
+        for char in word: #loop over each character of a word
+            found_in_child = False
+            # Search for the character in the children of the present `node`
+            for child in node.children:
+                if child.char == char:
+                    # We found it, increase the counter by 1 to keep track that another
+                    # word has it as well
+                    #child[char] = child.get(char, 0) + 1; 
+                    child.counter += 1
+                    # And point the node to the child that contains this char
+                    node = child
+                    found_in_child = True
+                    break
+            # We did not find it so add a new child
+            if not found_in_child:
+                new_node = TrieNode(char)
+                node.children.append(new_node)
+                # And then point node to the new child
+                node = new_node
+        # Everything finished. Mark it as the end of a word.
+        node.word_finished = True
 
 
 #TODO: Consider adding an existence check to speed up checking?

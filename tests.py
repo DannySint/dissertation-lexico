@@ -1,3 +1,8 @@
+#print(string.punctuation)
+PATTERN = re.compile("[\d{}]+$".format(re.escape(string.punctuation)))
+#print(bool(PATTERN.match("")))
+#print(bool(PATTERN.match("'''")))
+#print(bool(PATTERN.match("rek'sai")))
 
 #is_prefix("c", "corresponded")
 #is_suffix("corresponde", "corresponded")
