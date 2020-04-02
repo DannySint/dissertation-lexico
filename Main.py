@@ -2,8 +2,13 @@
 
 import sys
 import getopt
+import string
+import test_evaluator
+
 from morpheme_analysis import MorphemeAnalysis
+from morpheme_analysis import SEGMENTATION_MARKER
 from evaluation import Evaluation
+
 class CommandLine:
     def __init__(self):
         self.input_file = None
@@ -71,34 +76,109 @@ if __name__ == '__main__':
     #print(config.output_file)
     if config.input_file is None:
         config.printHelp()
-    else:
-        morpheme_analysis = MorphemeAnalysis(config.input_file)
+        print("An input file is required. Program will now exit.")
+        sys.exit(1);
+    morpheme_analysis = MorphemeAnalysis(config.input_file)
     
-        morpheme_analysis.score_prefixes(False);
-        morpheme_analysis.pruned_word_score_prefix = morpheme_analysis.prune_affixes(morpheme_analysis.word_score_prefix); 
-        prefix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_prefix, morpheme_analysis.output_file_prefixes);
-        
-        morpheme_analysis.score_suffixes(False); 
-        morpheme_analysis.pruned_word_score_suffix = morpheme_analysis.prune_affixes(morpheme_analysis.word_score_suffix); 
-        suffix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_suffix, morpheme_analysis.output_file_suffixes);
-        #word_standard.write(segment_prefix("report+s", True))
-        
-        word_standard = open(config.output_file, 'w')
-        #Outputting the list of words in morpheme-segmented form
-        word_and_morphemes = []
-        for word in morpheme_analysis.words:
-            if len(word) != 1:
-                to_output = morpheme_analysis.segment_suffix(word)
-                word_and_morphemes.append(word + " " + to_output)
-                word_standard.write(word + " " + to_output + "\n")
+    if config.gold_standard_file is None:
+        config.printHelp()
+        print("A gold standard file is required. Program will not exit.")
+        sys.exit(1);
+    
+    word_frequency = {}
+    with open(config.input_file) as f:
+        for line in f:
+            frequency, words = line.strip('\n').split(' ', 1)
+            word_frequency[words] = int(frequency)
+        #mapping = dict(line.strip('\n').split(' ', 1) for line in f) #ordered via number, name currently
+    sorted_wf = sorted(word_frequency.items(), key=lambda x: x[1], reverse=True)
+    #print(sorted_wf[:200]) #unsorted by frequency
+    top_words = sorted_wf[:400]
+    only_words = [wordline[0] for wordline in top_words if (not any(char in string.punctuation for char in wordline[0]))]
+    #print(only_words)
+    
+    morpheme_analysis.score_prefixes(False);
+    morpheme_analysis.pruned_word_score_prefix = morpheme_analysis.prune_affixes(morpheme_analysis.word_score_prefix); 
+    prefix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_prefix, morpheme_analysis.output_file_prefixes);
+    
+    morpheme_analysis.score_suffixes(False); 
+    morpheme_analysis.pruned_word_score_suffix = morpheme_analysis.prune_affixes(morpheme_analysis.word_score_suffix); 
+    suffix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_suffix, morpheme_analysis.output_file_suffixes);
+    #word_standard.write(segment_prefix("report+s", True))
+    
+    word_standard = open(config.output_file, 'w')
+    #Outputting the list of words in morpheme-segmented form
+    
+    #word_and_morphemes = {} #[[words  ]
+    morphemes = []
+    words_and_morphemes = {}
+    for word in morpheme_analysis.words: #for words in only_words:
+    #for word in morpheme_analysis.words:
+        if len(word) != 1: #TODO: Something about this
+            #print(segmented_word)
+            segmented_word = morpheme_analysis.segment_suffix(word) # segment -> seg+ment
             
-        #Evaluation
-        evaluate = Evaluation("data/goldstd_trainset-untabbed.segmentation.eng.txt", word_and_morphemes)
-        #evaluate.create_gold_standard()
-        evaluate.compare_mine_to_gold(True)
-        
-        
+            word_delimiter = word + "\t"
+            #print("To output " + segmented_word)
+            x = segmented_word.split(SEGMENTATION_MARKER) #[un],[requit],[ed]
+            #word_and_morphemes.append(word + " " + segmented_word) # []
+            words_and_morphemes[word] = x #[[un],[requit],[ed]] #morphemes.append(x) #{"unrequited":[un,requit,ed]} 
+            #SEGMENTATION_MARKER.join(x[:-1]) + f'_{x[-1]}' #converts a word into it's underscore segmented form    
+            #word_standard.write(word_delimiter + '_'.join(x) + "\n") #word_standard.write(word + "\t" + str(segmented_word.split('_')) + "\n")
+            word_standard.write("" + SEGMENTATION_MARKER.join(x) + "\n") #"" needed to prevent a lot of nulls at beginning
+            #word_standard.write("" + word + " " + " ".join(x) + "\n") #"unrequited un requit ed"
     
+    #gold standard part
+    gold_file = config.gold_standard_file
+    golds = [gold_file]
+    separator = SEGMENTATION_MARKER
+    
+#    en_gold = r"data/en_gold.txt";
+#    #create array of gold files
+#    with open(en_gold, "r") as file: 
+#    for line in file:
+#        x = line.strip()
+#        arr.append(x)
+#    """Read the gold file which contains correctly segmented words."""
+    """
+    golds = []
+    with open(gold_file, 'r', encoding='utf-8') as infile:
+        for line in infile:
+            gold = line.strip().split(separator)
+            golds.append(gold_file)
+    
+    #Evaluation - # build up list of words and the gold standard equivalent.. together
+    #dev = words_and_morphemes#[['pre', 'cogni', 'tion'], ['devalue'], ['evalua', 'te'], ['ef', 'fect']]
+    gold = []
+    gold_list = [re.sub(SEGMENTATION_MARKER, '', word) for word in gold] #set() of gold words for checking #{s for s in [1, 2, 1, 0]}
+    gold_check = {re.sub(SEGMENTATION_MARKER, '', word) for word in gold} #set() of gold words for checking #{s for s in [1, 2, 1, 0]}
+    word_list = [word_and_morpheme for word_and_morpheme in words_and_morphemes if word_and_morpheme[0] in gold_check] #[wordingold] #list of words if they're in the gold standard
+    
+    #if word in gold then get word_and_morpheme from words_and_morpheme:
+    #creating wordlist
+    word_list = []
+    for word in gold: #looping through gold to get any words 
+        if word in words_and_morphemes:
+            word_list.append(word)
+            #new_gold.append(gold)
+    
+    for word in only_words:
+        #put a list of the morphemes for each word in words_and_morphemes into the gold
+        if word in gold_standard_dictionary:
+            gold.append(gold_standard_dictionary[word])
+            new_wordlist.append
+        else:
+            removed_wordlist = 
+    gold = [['pre', 'cogni', 'tion'], ['de', 'value'], ['eval', 'uate'], ['effect']]
+    evaluator = pyport_evaluation.Evaluator()
+    tp, fp, fn = evaluator._count(dev, gold)
+    """
+#        evaluate = Evaluation("data/goldstd_trainset-untabbed.segmentation.eng.txt", word_and_morphemes)
+#        #evaluate.create_gold_standard()
+#        evaluate.compare_mine_to_gold(True)
+    
+        
+
     #for line in goldstandard:
         
         #goldstandard.append()
