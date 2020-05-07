@@ -49,10 +49,13 @@ class Evaluator(object):
 #            while ri < len(''.join(gold)):
             while ri < len(rj):
                 rc = rj[ri]
+                #print("rj",rj)
+                #print("gj",gj)
                 gc = gj[gi]
 #                print('CH:', gc, rc)
                 if rc == separator and gc == separator: # common split point = TP
                     self.true_positives += 1
+                    #print("ri",ri)
                     ri += 1
                     gi += 1
                 elif rc == separator:       # result-only split point = FP

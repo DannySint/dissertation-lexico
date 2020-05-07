@@ -4,14 +4,16 @@ from lexotree import TrieNode
 from lexotree import reverse
 import multiprocessing
 from itertools import product
+import sys
 
 CSV_FORMAT = True
 DEBUG = False
-SEGMENTATION_MARKER = '_';
+SEGMENTATION_MARKER = r'_';
+ENCODING = "latin-1"
 
 class MorphemeAnalysis:
     def __init__(self, input_file): #going to get the files to input and output to from the main
-        self.input_file = "data/wordlist-2007.eng" #TODO: Add opts for the wordlist and an output file for the morphemes. And a format option
+        self.input_file = input_file #TODO: Add opts for the wordlist and an output file for the morphemes. And a format option
         self.output_file_suffixes = "data/morphemes_suffixes-multi.csv"
         self.output_file_prefixes = "data/morphemes_prefixes-multi.csv"
         
@@ -38,10 +40,20 @@ class MorphemeAnalysis:
         words_check = set()
         words_reversed = []
         words_check_reversed = set()
-        f = open(self.input_file, 'r', encoding="latin-1") #latin-1 necessary on some systems not running English locale
+        f = open(self.input_file, 'r', encoding=ENCODING) #latin-1 necessary on some systems not running English locale
         for line in f:
-            _, word = line.split()
-            if (not any(char in string.punctuation for char in word)):
+            if " " in line:
+                #print(line)
+                frequency, word = line.split() #"frequency word" -> _, word (for double column files)
+                #print(line)
+                #sys.exit(1)
+            else:
+                word = line.strip('\n'); frequency = 0; #"word" ->  word (for single column files)
+                print(word); #sys.exit(1) #TODO: Fix this
+            punctuation = any(char in string.punctuation for char in word)
+            #TODO: Fix this probably
+            #TODO: experiment with changing frequency allowed
+            if (not punctuation) and ((int(frequency) == 0) or (int(frequency) >= 20)): 
                 words.append(word)
                 words_check.add(word)
                 words_reversed.append(reverse(word))
@@ -56,18 +68,10 @@ class MorphemeAnalysis:
         Loops through all the words to send to is_suffix
         Split words up into multi processing so it's much faster
         """
-        #word_pairs = [[word[:-1], word] for word in words if len(word) > 1]#create list of [word[:-1], word]'s
-        #print(word_pairs)
-#        word_pairs = [ ["wor","word"], ["report","reports"] ]
-#        with multiprocessing.Pool(processes=2) as pool:
-#            pool.map(is_suffix, word_pairs)
-            
-            
-            #pool.starmap(is_suffix, product(word[:-1], word, DEBUG, repeat=2))
         for word in self.words:
             #add word to word_score{} with 0
-            if len(word) > 1: #no point in doing 1 letter characters.
-                self.is_suffix(word[:-1], word, DEBUG)
+            #if len(word) > 1: #no point in doing 1 letter characters.
+            self.is_suffix(word[:-1], word, DEBUG)
 
     #recursive function that returns a suffix if the 3 conditions are met
     #for a clearer insight into the variables of this algorithm doc/is_suffix.png
@@ -179,7 +183,7 @@ class MorphemeAnalysis:
         """
         Loop that outputs all the morphemes in word_score
         """
-        o = open(output_file, 'w')
+        o = open(output_file, 'w', encoding=ENCODING)
         morpheme_list = []
         word_score = pruned_word_score
         for word_pair in word_score:
@@ -264,20 +268,8 @@ class MorphemeAnalysis:
         if ((prefix_list == []) or (suffix_list == [])):
             return word
         for i in range(len(prefix_list)): #doesn't matter if it's prefix or suffix list, just pick one.
-            if DEBUG: print("Suffix_list[i]: " + suffix_list[i])
-            if DEBUG: print("prefix_list[i][:1]: " + prefix_list[i][:1])
-            #print("prefix list + suffix_list[]: " + prefix_list[i][:1] + suffix_list[i])
-            #print("Reversed prefix list + suffix_list[]: " + reverse(suffix_list[:i] + prefix_list[i][:1]))
-            if DEBUG: print("First test: " + reverse(suffix_list[i]))
-            if DEBUG: print("Second test: " + reverse(prefix_list[i][-1])) #aA B = suffix_list[i]; A = prefix_list[i][:-1]
-            if DEBUG: print("Removed " + SEGMENTATION_MARKER + " from " + reverse(re.sub(SEGMENTATION_MARKER, '',suffix_list[i])));
-            #peel = backward_trie.probability(suffix_list[i], reverse(prefix_list[i][:1] + suffix_list[i] ))
-            #peel = backward_trie.probability(reverse(suffix_list[:i]), reverse(suffix_list[:i] + prefix_list[i][1]))
-            #try: 
-            peel = self.backward_trie.probability(reverse(prefix_list[i][-1]), reverse(re.sub(SEGMENTATION_MARKER, '', suffix_list[i])))
-            #except: return word
+            peel = self.backward_trie.probability(reverse(prefix_list[i][-1] + suffix_list[i].replace(SEGMENTATION_MARKER, "")), reverse(suffix_list[i].replace(SEGMENTATION_MARKER, "")))
             if DEBUG: print("Peel: " + str(peel))
-            ###### THIS CAN PROBABLY BE IMPROVED.. ###### 
             if peel < 1:
                 potential_morphemes[prefix_list[i]] = peel
             lowest_morpheme = str(min(potential_morphemes, key=potential_morphemes.get, default=0))
@@ -297,7 +289,11 @@ def decompose_words(self, word, word_score) -> [()]: #return a list of potential
     print("ff@20")
 
 def isSplittable(self, word, k):
-    word_parts = {}
+    """
+    The start of making words splittable into multiple morphemes.
+    """
+    word_parts = {} #word_parts needs to be a dictionary with the word pieces and then score
+    #word_parts = {{un, re, quit, ed:10},{desu:0}}x
     if ((word == "") or (k == 0)):
         print(word + " was empty or k==0?");
         return ((word == "") and (k == 0))

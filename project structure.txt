@@ -1,0 +1,53 @@
+1 - introduction
+project aim
+summary of report?
+2 - literature review (don't mention as mentioned in chapter 1)
+morphologoical analysis
+morphology, what is it as a linguistic phenomenon and difference between languages
+characteristics
+task of morphological analysis and why interest in it
+task of performing morphological analysis
+unsupervised and supervised approaches (annotated, hand-coded rules)
+discuss range of approaches people have supplied such as goldsmith, samarth/keshava (a number of approaches)  - talk about in depth to demonstrate understanding -  (provide background for understanding in project - discuss to a person in industry)
+talk about in depth to demonstrate understanding
+(provide background for understanding in project - discuss to a person in industry)
+evaluation:
+performance
+how well it performed / how the evaluation works? against gold standard
+datasets / challenges
+give examples to pad space
+
+3 - planned experimentation and analysis
+more specific - work on morpho challenge data, create your method and describe it in detail.
+Explain the experiments you hope to set up in order to see what quirks of the program achieve the best score
+
+4 - implementation /testing of method
+keshava / samarth's method
+removal of punctuation
+my implementation of their method (how I've made it faster) - initial implementation was restricted to 1 prefix, 1 stem, 1 suffix. This could be extended to multiple affix peeling
+tests for each function 
+
+5 - experiments and results
+removing punctuation
+thresholds modifying
+modifying method
+talk about the three conditions
+The first condition check if it's another word see if removing this helps/abets the score
+Add Japanese/Russian experiments
+words like "bake" wouldn't occur in the word existence check for words such as "baking" as "bak" doesn't exist as a real world.
+experiment, the results and then which gives better results and then continue with that
+
+6 - conclusion and future work
+principle findings, key findings from the keshava method
+in future work I would like to...
+Apostrophes:
+Apostrophe's in the gold standard might bring down the score. Therefore while it still might be useful to ignore apostrophe's in the analysis stage it might be useful to split  words containing apostrophe's into their original form.
+create an algorithm that can detect words that have been conjugated together to combine morphemes.
+add a rule for these kind of words, would the performance improve?
+bring in methods from goldsmith to see if the performance can be improved if combined with the keshava method.
+see if punctuation could be brought back in
+When looking up probabilities it's always comparing two probabilities against each other. They're also slightly redundant as only words that are similar are being compared. e.g. "report" and "reports" or "r" and "report". This means that instead of performing O(2k) calculations where k is the amount of letters in each word it could perform O(k) as it'll just reuse the calculation. 
+It can potentially reduce the number of computations by up to half.
+As the morpheme analysis can be divided into tasks for each letter of the alphabet that is being used. This means multi core processing can be achieved for a large enough dataset where it might make sense. This did not make senes for this project as the sample size was low and computation power available was high. However if this kind of project would be run on a smaller device with less performance it could be beneficial to speed up times as the tasks can be separated and are not writing to the same space.
+
+NLTK wordlist sample resources

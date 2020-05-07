@@ -152,7 +152,7 @@ if __name__ == "__main__":
     forwardtrie = TrieNode('*')
     words = words_from_file(file)
     for word in words:
-        add(forwardtrie, word)
+        forwardtrie.add(word)
     #timeit.timeit(forwardtrie.pprint)
     forwardtrie.pprint()
 
