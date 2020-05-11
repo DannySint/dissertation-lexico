@@ -17,7 +17,9 @@ class CommandLine:
         self.input_file = None
         self.output_file = None
         self.gold_standard_file = None
-        opts, args = getopt.getopt(sys.argv[1:],'hi:o:f:g:', ["help", "input", "output", "format", "gold"])
+        self.number = None
+        self.testing_file = None
+        opts, args = getopt.getopt(sys.argv[1:],'hi:o:f:g:n:t:', ["help", "input", "output", "format", "gold"])
         opts = dict(opts)
         if '-h' in opts:
             self.printHelp()
@@ -38,6 +40,11 @@ class CommandLine:
         else:
             self.output_file = None
         
+        if '-t' in opts:
+            self.testing_file = opts['-t']
+        else:
+            self.testing_file = self.input_file
+        
         #file format (txt or csv)
         if '-f' in opts:
             self.file_format = opts['-f']
@@ -48,6 +55,11 @@ class CommandLine:
             self.gold_standard_file = opts['-g']
         else:
             self.gold_standard_file = None    
+            
+        if '-n' in opts:
+            self.number = opts['-n']
+        else:
+            self.number = None
         #self.query_print = '-q' in opts
         #self.print_flat = '-f' in opts
         #self.show_interp_prec = '-I' in opts
@@ -80,7 +92,10 @@ if __name__ == '__main__':
         config.printHelp()
         print("An input file is required. Program will now exit.")
         sys.exit(1);
-    morpheme_analysis = MorphemeAnalysis(config.input_file)
+    if config.number == None:
+        morpheme_analysis = MorphemeAnalysis(config.input_file)
+    else:
+        morpheme_analysis = MorphemeAnalysis(config.input_file, config.number)
     
     #gold standard file
     if config.gold_standard_file is None:
@@ -90,7 +105,6 @@ if __name__ == '__main__':
     
     #Getting only the most popular words based on frequency
     word_frequency = {}
-    
 #    with open(config.input_file) as f:
 #      if " " in f.readline():
 #        for line in f:
@@ -100,10 +114,10 @@ if __name__ == '__main__':
 #          top_words = sorted_wf[:400]
 #          only_words = [wordline[0] for wordline in top_words if (not any(char in string.punctuation for char in wordline[0]))]              
 #    print("2")
-    
+    VERBOSE = True
     #Morpheme Analysis Time
     start = time.time(); message ="Starting morpheme analysis..."
-    print(message, end=' ')
+    if VERBOSE: print(message, end=' ')
     morpheme_analysis.score_prefixes(False);
     morpheme_analysis.pruned_word_score_prefix = morpheme_analysis.prune_affixes(morpheme_analysis.word_score_prefix); 
     prefix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_prefix, morpheme_analysis.output_file_prefixes);
@@ -113,13 +127,13 @@ if __name__ == '__main__':
     suffix_list = morpheme_analysis.get_morphemes(morpheme_analysis.pruned_word_score_suffix, morpheme_analysis.output_file_suffixes);
     #word_standard.write(segment_prefix("report+s", True))
     finish = time.time()
-    print("Finished. Time taken: " + str(finish-start))
+    if VERBOSE: print("Finished. Time taken: " + str(finish-start))
     
     #Outputting the list of words in morpheme-segmented form
     word_standard = open(config.output_file, 'w', encoding=ENCODING)
     
     start = time.time(); message = "Writing morphemes to file...";
-    print(message, end=' ')
+    if VERBOSE: print(message, end=' ')
     morphemes = []
     words_and_morphemes = {}
     for word in morpheme_analysis.words: #for words in only_words:
@@ -132,7 +146,7 @@ if __name__ == '__main__':
             words_and_morphemes[word] = x #[[un],[requit],[ed]] #morphemes.append(x) #{"unrequited":[un,requit,ed]} 
             word_standard.write("" + SEGMENTATION_MARKER.join(x) + "\n") #"" needed to prevent a lot of nulls at beginning
     finish = time.time()
-    print("Finished. Time taken: " + str(finish-start))
+    if VERBOSE: print("Finished. Time taken: " + str(finish-start))
     
     
     #gold standard part
@@ -143,11 +157,11 @@ if __name__ == '__main__':
     
     #EVALUATION
     message = "Starting Evaluation... "; start = time.time();
-    print(message, end=' ')
+    if VERBOSE: print(message, end=' ')
     en_gold = r"data/en_gold.txt" #en_gold = config.gold_standard_file;
     my_std = r"word_standard.txt" #my_std = config.output_file
     
-    with open(en_gold, 'r') as file:
+    with open(gold_file, 'r') as file:
         arr = [];
         for line in file:
             arr.append(line.strip())
@@ -170,19 +184,7 @@ if __name__ == '__main__':
         else:
             golds[i] = ""
     
-    #print("results",new_results)
-    #print()
-#    golds = [];
-#    golds = arr.copy();
-#    for i in range(len(golds)):
-#        golds[i] = tuple(golds[i].split('+'))
-#        results[i] = tuple(results[i].split(SEGMENTATION_MARKER))
-
-            
-            #flag them for deletion
-    #why is it not working now???
-    #because there are words that presumably exist in gold but aint in my wordfile don't exist in 
-    #remove all flagged words in gold I suppose?
+    
     golds = [gold for gold in golds if not (gold == "")] #[wordingold]
     #print("golds",golds)
     #sys.exit()
@@ -190,60 +192,6 @@ if __name__ == '__main__':
     
     score = eva.calculate(new_results, golds)
     finish = time.time()
-    print("Finished. Time taken: " + str(finish-start))
+    if VERBOSE: print("Finished. Time taken: " + str(finish-start))
     score_message = "Precision: {0}; Recall: {1}; F-Score: {2}"
     print(score_message.format(*score))
-    
-#    en_gold = r"data/en_gold.txt";
-#    #create array of gold files
-#    with open(en_gold, "r") as file: 
-#    for line in file:
-#        x = line.strip()
-#        arr.append(x)
-#    """Read the gold file which contains correctly segmented words."""
-    """
-    golds = []
-    with open(gold_file, 'r', encoding='utf-8') as infile:
-        for line in infile:
-            gold = line.strip().split(separator)
-            golds.append(gold_file)
-    
-    #Evaluation - # build up list of words and the gold standard equivalent.. together
-    #dev = words_and_morphemes#[['pre', 'cogni', 'tion'], ['devalue'], ['evalua', 'te'], ['ef', 'fect']]
-    gold = []
-    gold_list = [re.sub(SEGMENTATION_MARKER, '', word) for word in gold] #set() of gold words for checking #{s for s in [1, 2, 1, 0]}
-    gold_check = {re.sub(SEGMENTATION_MARKER, '', word) for word in gold} #set() of gold words for checking #{s for s in [1, 2, 1, 0]}
-    word_list = [word_and_morpheme for word_and_morpheme in words_and_morphemes if word_and_morpheme[0] in gold_check] #[wordingold] #list of words if they're in the gold standard
-    
-    #if word in gold then get word_and_morpheme from words_and_morpheme:
-    #creating wordlist
-    word_list = []
-    for word in gold: #looping through gold to get any words 
-        if word in words_and_morphemes:
-            word_list.append(word)
-            #new_gold.append(gold)
-    
-    for word in only_words:
-        #put a list of the morphemes for each word in words_and_morphemes into the gold
-        if word in gold_standard_dictionary:
-            gold.append(gold_standard_dictionary[word])
-            new_wordlist.append
-        else:
-            removed_wordlist = 
-    gold = [['pre', 'cogni', 'tion'], ['de', 'value'], ['eval', 'uate'], ['effect']]
-    evaluator = pyport_evaluation.Evaluator()
-    tp, fp, fn = evaluator._count(dev, gold)
-    """
-#        evaluate = Evaluation("data/goldstd_trainset-untabbed.segmentation.eng.txt", word_and_morphemes)
-#        #evaluate.create_gold_standard()
-#        evaluate.compare_mine_to_gold(True)
-    
-        
-
-    #for line in goldstandard:
-        
-        #goldstandard.append()
-    
-    # get a list of the morpheme segmented wordlist
-    # 
-#TODO: Add Evaluation with the Morpho Project Challenges' gold standard

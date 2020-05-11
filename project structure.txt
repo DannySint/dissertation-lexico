@@ -36,6 +36,7 @@ The first condition check if it's another word see if removing this helps/abets 
 Add Japanese/Russian experiments
 words like "bake" wouldn't occur in the word existence check for words such as "baking" as "bak" doesn't exist as a real world.
 experiment, the results and then which gives better results and then continue with that
+low word frequency removal
 
 6 - conclusion and future work
 principle findings, key findings from the keshava method

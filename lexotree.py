@@ -23,18 +23,18 @@ class TrieNode(object):
             stack = stack + self.char
 
         sys.stdout.write(indent)
-#        if last:
-#            sys.stdout.write("┗╾") #cause issues with outputting to command line
-#            indent += "  "
-#        else:
-#            sys.stdout.write("┣╾")
-#            indent += "| "
         if last:
-            sys.stdout.write("|_")
+            sys.stdout.write("┗╾") #cause issues with outputting to command line
             indent += "  "
         else:
-            sys.stdout.write("|--")
+            sys.stdout.write("┣╾")
             indent += "| "
+#        if last:
+#            sys.stdout.write("|_")
+#            indent += "  "
+#        else:
+#            sys.stdout.write("|--")
+#            indent += "| "
 
         sys.stdout.write("{} ({})".format(self.char, self.counter))
         if self.word_finished:
@@ -137,24 +137,38 @@ def words_from_file(file):
 
 
 if __name__ == "__main__":
-#    root = TrieNode('*')
-#    add(root, "hackathon")
-#    add(root, 'hack')
-#    add(root, 'root')
-#
-#    print(find_prefix(root, 'hackathon'))
-#    print(find_prefix(root, 'hac'))
-#    print(find_prefix(root, 'hack'))
-#    print(find_prefix(root, 'hackathon'))
-#    print(find_prefix(root, 'ha'))
-#    print(find_prefix(root, 'hammer'))
-    file = "wordlist-2007-trimmed-a.eng"
+    root = TrieNode('*')
+    root.add("hackathon")
+    root.add('hack')
+    root.add('rep');
+    root.add('repo');
+    root.add('repor');
+    root.add('report');
+    root.add('reports');
+    root.add('root')
+    root.add("cat");
+    root.pprint()
+    print(find_prefix(root, 'hackathon'))
+    print(find_prefix(root, 'hac'))
+    print(find_prefix(root, 'hack'))
+    print(find_prefix(root, 'hackathon'))
+    print(find_prefix(root, 'ha'))
+    print(find_prefix(root, 'hammer'))
+    print(find_prefix(root, "rep"))
+    print(find_prefix(root, "report"))
+    print(find_prefix(root, "reports"))
+    print()
+    print(root.probability("rep", "reports"))
+    print(root.probability("report", "reports"))
+    print(root.probability("reports", "cat"))
+    #probability()
+    file = r"data/wordlist-2007.eng"
     forwardtrie = TrieNode('*')
     words = words_from_file(file)
     for word in words:
         forwardtrie.add(word)
     #timeit.timeit(forwardtrie.pprint)
-    forwardtrie.pprint()
+    #forwardtrie.pprint()
 
 #word = "a"
 #regstr = '\A' + word + '\S'

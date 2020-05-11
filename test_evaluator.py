@@ -49,10 +49,7 @@ class Evaluator(object):
 #            while ri < len(''.join(gold)):
             while ri < len(rj):
                 rc = rj[ri]
-                #print("rj",rj)
-                #print("gj",gj)
                 gc = gj[gi]
-#                print('CH:', gc, rc)
                 if rc == separator and gc == separator: # common split point = TP
                     self.true_positives += 1
                     #print("ri",ri)
@@ -95,20 +92,10 @@ class Evaluator(object):
 
 if __name__ == '__main__':
     
-    golds   = ['ag+grand+ize+ment']
-    results = ['agg+randize+ment']
     
-    golds   = ['a+long+side']
-    results = ['along+side']
-    
-    golds   = ['anthrop+olog+ical']
-    results = ['anth+ropolog+ical']
-    
-    golds   = ['beaut+ician+s']
-    results = ['be+aut+ic+ian+s']
 
-    golds   = ['ag+grand+ize+ment', 'a+long+side', 'anthrop+olog+ical', 'beaut+ician+s']
-    results = ['agg+ran+dize+ment', 'along+side', 'anth+ropolog+ical', 'be+aut+ic+ian+s']
+    golds   = ['re+port+s', 'un+dy+ing', 'hypno+tic', 'reticient']
+    results = ['re+port+s', 'undy+ing', 'hypno+tic', 'retic+ient']
     
     print()
     print('INIT-GOLD-STD:', golds)
@@ -130,11 +117,11 @@ if __name__ == '__main__':
     eval = Evaluator()
     eval.calculate(results, golds)
     
-    print('<true_positives>:', eval.true_positives)
-    print('<false_positives>:', eval.false_positives)
-    print('<false_negatives>:', eval.false_negatives)
+    print('True positives:', eval.true_positives)
+    print('False positives:', eval.false_positives)
+    print('False negatives:', eval.false_negatives)
     print()
-    print('<precision>:', eval.precision)
-    print('<recall>:', eval.recall)
-    print('<fscore>:', eval.fscore)
+    print('Precision:', eval.precision)
+    print('Recall:', eval.recall)
+    print('F-measure>:', eval.fscore)
 
