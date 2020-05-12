@@ -9,7 +9,6 @@ from test_evaluator import Evaluator
 from morpheme_analysis import MorphemeAnalysis
 from morpheme_analysis import SEGMENTATION_MARKER
 from morpheme_analysis import ENCODING
-from evaluation import Evaluation
 
 
 class CommandLine:
@@ -155,11 +154,11 @@ if __name__ == '__main__':
     results = []
     separator = SEGMENTATION_MARKER
     
-    #EVALUATION
+    #EVALUATION - THIS PART CAN BE COPIED AND PASTED WITH THE 2 FILES CHANGED - 
     message = "Starting Evaluation... "; start = time.time();
     if VERBOSE: print(message, end=' ')
-    en_gold = r"data/en_gold.txt" #en_gold = config.gold_standard_file;
-    my_std = r"word_standard.txt" #my_std = config.output_file
+    en_gold = r'data/en_gold.txt'#config.gold_standard_file  #en_gold = config.gold_standard_file;
+    my_std = r'word_standard.txt'#config.testing_file #my_std = config.output_file
     
     with open(gold_file, 'r') as file:
         arr = [];
@@ -188,10 +187,12 @@ if __name__ == '__main__':
     golds = [gold for gold in golds if not (gold == "")] #[wordingold]
     #print("golds",golds)
     #sys.exit()
-    eva = Evaluator(); 
     
+    eva = Evaluator(); 
     score = eva.calculate(new_results, golds)
+    
     finish = time.time()
     if VERBOSE: print("Finished. Time taken: " + str(finish-start))
+    #print(str(score))
     score_message = "Precision: {0}; Recall: {1}; F-Score: {2}"
     print(score_message.format(*score))

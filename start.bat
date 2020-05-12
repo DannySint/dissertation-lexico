@@ -1,0 +1,1 @@
+python main.py -i data/wordlist-2007.eng -o word_standard.txt -g C:\Users\Danny\PyPortS\data\en_gold.txt -t word_standard.txt

@@ -9,7 +9,7 @@ CSV_FORMAT = True
 DEBUG = False
 SEGMENTATION_MARKER = r'_';
 ENCODING = "latin-1"
-punish = -1; reward = 19; 
+punish = -1; reward = 19;
 threshold = 0.05;
 
 
@@ -243,6 +243,7 @@ class MorphemeAnalysis:
         else: #peel apart the morphemes now
             first_part = word[0:0-len(lowest_morpheme)]
             if DEBUG: print("not empty")
+            
             edited_word =  str(first_part + SEGMENTATION_MARKER + lowest_morpheme)
             #if DEBUG: print("Suffix: " + edited_word)
             return self.segment_prefix(edited_word, DEBUG)
@@ -324,37 +325,37 @@ def isSplittable(self, word, k):
     print(word_parts)
     return False
 
-def testScoring():
-    ma = MorphemeAnalysis("data/wordlist-2007.eng") 
-    ma.is_suffix("report", "reports")
-    ma.is_suffix("mountain", "mountains")
-    ma.is_prefix("re", "reports")
-    ma.is_prefix("re", "report")
-    ma.is_prefix("re", "retaking")
-    ma.is_prefix("re", "resupply")
-    pruned_suffixes = ma.prune_affixes(ma.word_score_suffix)
-    pruned_prefixes = ma.prune_affixes(ma.word_score_prefix)
-    print(pruned_suffixes)
-    print(pruned_prefixes)
-
-if __name__ == '__main__':
-    ma = MorphemeAnalysis("data/wordlist-2007.eng") 
-    ma.score_prefixes(False);
-    ma.pruned_word_score_prefix = ma.prune_affixes(ma.word_score_prefix); 
-    prefix_list = ma.get_morphemes(ma.pruned_word_score_prefix, ma.output_file_prefixes);
-    
-    ma.score_suffixes(False); 
-    ma.pruned_word_score_suffix = ma.prune_affixes(ma.word_score_suffix); 
-    suffix_list = ma.get_morphemes(ma.pruned_word_score_suffix, ma.output_file_suffixes);
-    print(ma.segment_suffix("results"))
-    print(ma.segment_suffix("staying"))
-    print(ma.segment_suffix("falling"))
-    print(ma.segment_suffix("purchased"))
-    print(ma.segment_suffix("root"))
-    print(ma.segment_suffix("beneficiaries"))
-    print(ma.segment_prefix("disillusion"))
-    print(ma.segment_prefix("unhappy"))
-    print(ma.segment_prefix("undoing"))
-    print(ma.segment_prefix("unfold"))
-    print(ma.segment_prefix("disability"))
+#def testScoring():
+#    ma = MorphemeAnalysis("data/wordlist-2007.eng") 
+#    ma.is_suffix("report", "reports")
+#    ma.is_suffix("mountain", "mountains")
+#    ma.is_prefix("re", "reports")
+#    ma.is_prefix("re", "report")
+#    ma.is_prefix("re", "retaking")
+#    ma.is_prefix("re", "resupply")
+#    pruned_suffixes = ma.prune_affixes(ma.word_score_suffix)
+#    pruned_prefixes = ma.prune_affixes(ma.word_score_prefix)
+#    print(pruned_suffixes)
+#    print(pruned_prefixes)
+#
+#if __name__ == '__main__':
+#    ma = MorphemeAnalysis("data/wordlist-2007.eng") 
+#    ma.score_prefixes(False);
+#    ma.pruned_word_score_prefix = ma.prune_affixes(ma.word_score_prefix); 
+#    prefix_list = ma.get_morphemes(ma.pruned_word_score_prefix, ma.output_file_prefixes);
+#    
+#    ma.score_suffixes(False); 
+#    ma.pruned_word_score_suffix = ma.prune_affixes(ma.word_score_suffix); 
+#    suffix_list = ma.get_morphemes(ma.pruned_word_score_suffix, ma.output_file_suffixes);
+#    print(ma.segment_suffix("results"))
+#    print(ma.segment_suffix("staying"))
+#    print(ma.segment_suffix("falling"))
+#    print(ma.segment_suffix("purchased"))
+#    print(ma.segment_suffix("root"))
+#    print(ma.segment_suffix("beneficiaries"))
+#    print(ma.segment_prefix("disillusion"))
+#    print(ma.segment_prefix("unhappy"))
+#    print(ma.segment_prefix("undoing"))
+#    print(ma.segment_prefix("unfold"))
+#    print(ma.segment_prefix("disability"))
     

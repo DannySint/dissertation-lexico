@@ -22,7 +22,7 @@ class Evaluator(object):
         self._calculate_precision(self.true_positives, self.false_positives)
         self._calculate_recall(self.true_positives, self.false_negatives)
         self._calculate_fscore(self.precision, self.recall)
-        return (self.precision, self.recall, self.fscore)
+        return (f'{self.precision:.5f}', f'{self.recall:.5f}', f'{self.fscore:.5f}')
      
     def _glue(self, word, separator='+'):
         """Concatenate segments, using separator to denote morpheme breaks."""
