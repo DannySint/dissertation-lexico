@@ -1,0 +1,3 @@
+EXTRA 2.6 Range of approaches (extend)
+4.5.1 Multiple affix peeling
+6.x Conclusion and Future Thoughts
