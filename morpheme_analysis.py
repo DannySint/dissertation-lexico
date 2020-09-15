@@ -212,18 +212,12 @@ class MorphemeAnalysis:
             first_part = word[:i]
             second_part = word[i:]
             if second_part in self.pruned_word_score_suffix:
-                #affix_list.append([first_part, second_part]) #only 2 morpheme split currently.#TODO: Add k splitting
                 prefix_list.append(first_part)
                 suffix_list.append(second_part) #only 2 morpheme split
         if DEBUG: print(prefix_list)
         if DEBUG: print(suffix_list)
         
-            #compare Prb values
-            #list comprehension getting the lowest value iff the Prx value is < 1
-            #even_squares = [x * x for x in range(10) if x % 2 == 0]
         potential_morphemes = {}
-        #prefix_list = ["report", "repor", "repo",  "re"]
-        #suffix_list = ['s', 'ts', 'rts', 'ports']
         for i in range(len(prefix_list)): #TODO: Write as a list comprehension
             if DEBUG: print(prefix_list[i] + suffix_list[i][:1])
             if DEBUG: print(prefix_list[i])
@@ -265,28 +259,14 @@ class MorphemeAnalysis:
             return word
         for i in range(len(prefix_list)): #doesn't matter if it's prefix or suffix list, just pick one. 
             current_suffix = suffix_list[i].replace(SEGMENTATION_MARKER, "")
-            #print(word + '\n' + prefix_list[i][-1] + current_suffix)
-            #prefix segmentation offline
             peel = self.backward_trie.probability(reverse(prefix_list[i][-1] + current_suffix), reverse(current_suffix))
-            #prefix segmentation online
-            #peel = self.backward_trie.probability(reverse(current_suffix[1:]), reverse(current_suffix))
-            #print(prefix_list[i], peel)
-            #peel = self.backward_trie.probability(reverse( prefix_list[i][-1] + current_suffix), reverse(current_suffix)) # eel = self.backward_trie.probability(reverse(prefix_list[i][-1] + suffix_list[i].replace(SEGMENTATION_MARKER, "")), reverse(suffix_list[i].replace(SEGMENTATION_MARKER, "")))
-            #print("Peel " + str(peel))
             if peel < 1:
                 potential_morphemes[prefix_list[i]] = peel #
-            #print("Potential prefixes: " + str(potential_morphemes))
         
-        #potential_morphemes = dict(map(reversed, potential_morphemes.items())) #makes the highest lense morphemes first
-#        potential_morphemes2 = {} #ONLY AVAILABLE ON PYTHON 3.8
-#        for key in reversed(potential_morphemes):
-#            potential_morphemes2[key] = potential_morphemes[key]
-        #print("e",potential_morphemes2)
         lowest_morpheme = str(min(potential_morphemes, key=potential_morphemes.get, default=0))
             
         if (potential_morphemes == {}) or (lowest_morpheme == 0):
             if DEBUG: print("Potential_morphemes is empty")
-            #print("Empty")
             return word
         else: #peel apart the morphemes now
             second_part = word[0+len(lowest_morpheme):]
@@ -294,7 +274,6 @@ class MorphemeAnalysis:
             if DEBUG: print("Second part: " + second_part)
             if DEBUG: print(str(lowest_morpheme + SEGMENTATION_MARKER + second_part))
             edited_word = str(lowest_morpheme + SEGMENTATION_MARKER + second_part).replace(SEGMENTATION_MARKER*2, SEGMENTATION_MARKER)
-            #if DEBUG: print("Prefix: " + edited_word)
             return  edited_word #morphemes might be segmented in the same position
             
 def decompose_words(self, word, word_score) -> [()]: #return a list of potential tuples containing the morpheme pairs

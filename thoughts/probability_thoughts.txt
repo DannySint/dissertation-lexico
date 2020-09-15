@@ -1,7 +1,0 @@
-Prf(d|correspon) ~ 1 
-= Probability(correspond) / Probability(correspon)
-= probability("correspon", "correspond")
-
-Prf(t|repor) 
-= Probability(report) / Probability(repor)
-= probability(forward_trie, "repor", "report")
