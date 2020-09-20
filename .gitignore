@@ -2,3 +2,4 @@
 *.ini
 journey/
 doc/
+.gitignore
